@@ -1,65 +1,89 @@
-import Head from 'next/head'
-import styles from '../styles/Home.module.css'
+import Head from "next/head";
+import Link from "next/link";
+import {
+  Flex,
+  Heading,
+  Box,
+  Spacer,
+  Button,
+  Text,
+  UnorderedList,
+  ListItem,
+} from "@chakra-ui/react";
 
 export default function Home() {
   return (
-    <div className={styles.container}>
+    <div>
       <Head>
-        <title>Create Next App</title>
+        <title>90 Number Bingo</title>
         <link rel="icon" href="/favicon.ico" />
       </Head>
 
-      <main className={styles.main}>
-        <h1 className={styles.title}>
-          Welcome to <a href="https://nextjs.org">Next.js!</a>
-        </h1>
+      <Flex bg="gray.100" padding="10px">
+        <Box p="2">
+          <Heading size="md">Bingo (90 Number)</Heading>
+        </Box>
+        <Box>
+          <Link href="/bingo">
+            <Button colorScheme="blue">Play</Button>
+          </Link>
+        </Box>
+        <Spacer />
+        <Box>
+          <Button colorScheme="blue">Log in</Button>
+        </Box>
+      </Flex>
 
-        <p className={styles.description}>
-          Get started by editing{' '}
-          <code className={styles.code}>pages/index.js</code>
-        </p>
-
-        <div className={styles.grid}>
-          <a href="https://nextjs.org/docs" className={styles.card}>
-            <h3>Documentation &rarr;</h3>
-            <p>Find in-depth information about Next.js features and API.</p>
-          </a>
-
-          <a href="https://nextjs.org/learn" className={styles.card}>
-            <h3>Learn &rarr;</h3>
-            <p>Learn about Next.js in an interactive course with quizzes!</p>
-          </a>
-
-          <a
-            href="https://github.com/vercel/next.js/tree/master/examples"
-            className={styles.card}
-          >
-            <h3>Examples &rarr;</h3>
-            <p>Discover and deploy boilerplate example Next.js projects.</p>
-          </a>
-
-          <a
-            href="https://vercel.com/import?filter=next.js&utm_source=create-next-app&utm_medium=default-template&utm_campaign=create-next-app"
-            className={styles.card}
-          >
-            <h3>Deploy &rarr;</h3>
-            <p>
-              Instantly deploy your Next.js site to a public URL with Vercel.
-            </p>
-          </a>
-        </div>
-      </main>
-
-      <footer className={styles.footer}>
-        <a
-          href="https://vercel.com?utm_source=create-next-app&utm_medium=default-template&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Powered by{' '}
-          <img src="/vercel.svg" alt="Vercel Logo" className={styles.logo} />
-        </a>
-      </footer>
+      <Box p={5} shadow="md" borderWidth="1px" flex="1" borderRadius="md">
+        <Heading fontSize="xl">Bingo Card</Heading>
+        <Text mt={4}>
+          90 number bingo card has 3 lines and 9 columns of numbers. Each line
+          has 5 numbers and four empty slots. The columns are arranged as below:
+        </Text>
+        <UnorderedList>
+          <ListItem>01-09 in the 1st Column</ListItem>
+          <ListItem>10-19 in the 2nd Column</ListItem>
+          <ListItem>20-29 in the 3rd Column</ListItem>
+          <ListItem>30-39 in the 4th Column</ListItem>
+          <ListItem>40-49 in the 5th Column</ListItem>
+          <ListItem>50-59 in the 6th Column</ListItem>
+          <ListItem>60-69 in the 7th Column</ListItem>
+          <ListItem>70-79 in the 8th Column</ListItem>
+          <ListItem>80-90 in the 9th Column</ListItem>
+        </UnorderedList>
+      </Box>
+      <Box p={5} shadow="md" borderWidth="1px" flex="1" borderRadius="md">
+        <Heading fontSize="xl">How to Play</Heading>
+        <UnorderedList>
+          <ListItem>Create a group and invite players to the group.</ListItem>
+          <ListItem>Identify one player as the caller.</ListItem>
+          <ListItem>
+            Each player will pick a Bingo card. Once the game starts, you cannot
+            change your bingo card.
+          </ListItem>
+          <ListItem>
+            The caller wwill call the nunmbers 1-90 in random order.
+          </ListItem>
+          <ListItem>
+            If your number is called, mark it on the bingo card.
+          </ListItem>
+        </UnorderedList>
+      </Box>
+      <Box p={5} shadow="md" borderWidth="1px" flex="1" borderRadius="md">
+        <Heading fontSize="xl">How to Win</Heading>
+        <UnorderedList>
+          <ListItem>
+            First Five - First 5 numbers on the card are marked
+          </ListItem>
+          <ListItem>One Line - All the 5 numbers on a line are marked</ListItem>
+          <ListItem>
+            Two Line - All the 10 numbers on two lines are marked
+          </ListItem>
+          <ListItem>
+            Full House - All the 15 numbers on the card are marked
+          </ListItem>
+        </UnorderedList>
+      </Box>
     </div>
-  )
+  );
 }
