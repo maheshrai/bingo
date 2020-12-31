@@ -2,7 +2,22 @@ import { ChakraProvider, HStack } from "@chakra-ui/react";
 import { useState, useEffect } from "react";
 import Head from "next/head";
 import Link from "next/link";
-import { Flex, Heading, Box, Spacer, Button, Text } from "@chakra-ui/react";
+import {
+  Flex,
+  Heading,
+  Box,
+  Spacer,
+  Button,
+  Text,
+  Modal,
+  ModalOverlay,
+  ModalContent,
+  ModalHeader,
+  ModalFooter,
+  ModalBody,
+  ModalCloseButton,
+  useDisclosure,
+} from "@chakra-ui/react";
 import { supabase } from "../lib/supabase";
 import Auth from "../components/Auth";
 import styles from "../styles/Home.module.css";
@@ -13,6 +28,8 @@ function MyApp({ Component, pageProps }) {
     setSession(supabase.auth.session());
     supabase.auth.onAuthStateChange((_event, session) => setSession(session));
   }, []);
+
+  const { isOpen, onOpen, onClose } = useDisclosure();
 
   return (
     <ChakraProvider>
@@ -38,8 +55,9 @@ function MyApp({ Component, pageProps }) {
         <Spacer />
         {!session && (
           <HStack>
-            <Button colorScheme="blue">Log in</Button>
-            <Button colorScheme="blue">Sign Up</Button>
+            <Button colorScheme="blue" onClick={onOpen}>
+              Log in / Sign Up
+            </Button>
           </HStack>
         )}
         {session && (
@@ -47,10 +65,28 @@ function MyApp({ Component, pageProps }) {
             <Text>
               <Text>{session.user.email}</Text>
             </Text>
-            <Button colorScheme="blue">Sign Out</Button>
+            <Button
+              colorScheme="blue"
+              onClick={async () => {
+                const { error } = await supabase.auth.signOut();
+                if (error) console.log("Error logging out:", error.message);
+              }}
+            >
+              Sign Out
+            </Button>
           </HStack>
         )}
       </Flex>
+      <Modal isOpen={isOpen} onClose={onClose}>
+        <ModalOverlay />
+        <ModalContent>
+          <ModalHeader>Please Login or Sign Up</ModalHeader>
+          <ModalCloseButton />
+          <ModalBody>
+            <Auth onClose={onClose}></Auth>
+          </ModalBody>
+        </ModalContent>
+      </Modal>
       <Component {...pageProps} />
       <footer className={styles.footer}>
         <a

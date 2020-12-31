@@ -1,9 +1,11 @@
-import { VStack, Box, Badge } from "@chakra-ui/react";
-import { useState } from "react";
+import { VStack, Box, Badge, Text } from "@chakra-ui/react";
+import { useState, useEffect } from "react";
 import { BingoCard } from "../components/BingoCard";
 import { createBingoCard } from "../components/CardGenerator";
 import { CardModel, Game, Player, SquareModel } from "../components/Model";
 import { Caller } from "../components/Caller";
+import { supabase } from "../lib/supabase";
+import Auth from "../components/Auth";
 
 function Bingo() {
   var card1 = createBingoCard();
@@ -11,7 +13,7 @@ function Bingo() {
   card1.forEach((n, i) => {
     var sm = new SquareModel();
     sm.number = n;
-    sm.key = "" + i;
+    sm.key = "card1-" + i;
     cm1.squares.push(sm);
   });
 
@@ -20,7 +22,7 @@ function Bingo() {
   card2.forEach((n, i) => {
     var sm = new SquareModel();
     sm.number = n;
-    sm.key = "" + i;
+    sm.key = "card2-" + i;
     cm2.squares.push(sm);
   });
 
@@ -29,7 +31,7 @@ function Bingo() {
   card3.forEach((n, i) => {
     var sm = new SquareModel();
     sm.number = n;
-    sm.key = "" + i;
+    sm.key = "card3-" + i;
     cm3.squares.push(sm);
   });
 
@@ -45,6 +47,7 @@ function Bingo() {
   gm.players = [player1, player2];
 
   const [game, setGame] = useState(gm);
+  let [session, setSession] = useState(null);
   function updateSquare(name, sq, checked) {
     setGame((gm) => {
       const p = gm.players.find((p) => p.name === name);
@@ -60,29 +63,48 @@ function Bingo() {
       }
     });
   }
+
+  async function updateNumbersCalled(nums) {
+    // TBD
+  }
+
+  useEffect(() => {
+    setSession(supabase.auth.session());
+    supabase.auth.onAuthStateChange((_event, session) => setSession(session));
+  }, []);
+
   return (
     <Box p={5} shadow="md" borderWidth="1px" flex="1" borderRadius="md">
-      <VStack spacing="24px">
-        {game.players.map((i) => (
-          <Box maxW="lg" borderWidth="1px" borderRadius="lg" overflow="hidden">
-            <BingoCard
-              card={i.card}
-              name={i.name}
-              updateSquare={updateSquare}
-            />
+      {!session ? (
+        <Auth />
+      ) : (
+        <VStack spacing="24px">
+          {game.players.map((i) => (
             <Box
-              mt="1"
-              fontWeight="semibold"
-              as="h4"
-              lineHeight="tight"
-              isTruncated
+              maxW="lg"
+              borderWidth="1px"
+              borderRadius="lg"
+              overflow="hidden"
             >
-              {i.name}
+              <BingoCard
+                card={i.card}
+                name={i.name}
+                updateSquare={updateSquare}
+              />
+              <Box
+                mt="1"
+                fontWeight="semibold"
+                as="h4"
+                lineHeight="tight"
+                isTruncated
+              >
+                {i.name}
+              </Box>
             </Box>
-          </Box>
-        ))}
-        <Caller></Caller>
-      </VStack>
+          ))}
+          <Caller updateNumbersCalled={updateNumbersCalled}></Caller>
+        </VStack>
+      )}
     </Box>
   );
 }

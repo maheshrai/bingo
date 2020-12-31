@@ -5,11 +5,13 @@ import {
   Box,
   FormLabel,
   Button,
-  FormHelperText,
+  useToast,
   Input,
   Spacer,
+  HStack,
 } from "@chakra-ui/react";
-export default function Auth() {
+export default function Auth(props) {
+  const toast = useToast();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
@@ -19,24 +21,48 @@ export default function Auth() {
         type === "LOGIN"
           ? await supabase.auth.signIn({ email, password })
           : await supabase.auth.signUp({ email, password });
-      if (!error && !user) alert("Check your email for the login link!");
-      if (error) console.log("Error returned:", error.message);
+      if (error)
+        toast({
+          title: "An error occurred.",
+          description: error.message,
+          status: "error",
+          duration: 4000,
+          isClosable: true,
+        });
+      if (user && type === "SIGNUP") {
+        toast({
+          title: "Account created.",
+          description: "We've created your account for you.",
+          status: "success",
+          duration: 4000,
+          isClosable: true,
+        });
+        props.onClose();
+      }
+      if (user && type === "LOGIN") {
+        toast({
+          title: "Login Successful.",
+          description: "You have logged in successfully",
+          status: "success",
+          duration: 1000,
+          isClosable: true,
+        });
+        props.onClose();
+      }
     } catch (error) {
       console.log("Error thrown:", error.message);
       alert(error.error_description || error);
+      toast({
+        title: "An error occurred.",
+        description: error.message,
+        status: "error",
+        duration: 9000,
+        isClosable: true,
+      });
     }
   };
   return (
-    <Box
-      maxW="md"
-      borderWidth="1px"
-      borderRadius="lg"
-      overflow="hidden"
-      padding="10px"
-    >
-      <Box mt="1" fontWeight="semibold" as="h4" lineHeight="tight" isTruncated>
-        Please Login
-      </Box>
+    <Box maxW="md" overflow="hidden">
       <FormControl id="email">
         <FormLabel>Email address</FormLabel>
         <Input
@@ -53,15 +79,28 @@ export default function Auth() {
           onChange={(e) => setPassword(e.target.value)}
         />
       </FormControl>
-      <Button
-        colorScheme="blue"
-        onClick={(e) => {
-          e.preventDefault();
-          handleLogin("LOGIN", email, password);
-        }}
-      >
-        Login
-      </Button>
+
+      <HStack paddingTop="20px">
+        <Spacer></Spacer>
+        <Button
+          colorScheme="blue"
+          onClick={(e) => {
+            e.preventDefault();
+            handleLogin("SIGNUP", email, password);
+          }}
+        >
+          Sign Up
+        </Button>
+        <Button
+          colorScheme="blue"
+          onClick={(e) => {
+            e.preventDefault();
+            handleLogin("LOGIN", email, password);
+          }}
+        >
+          Login
+        </Button>
+      </HStack>
     </Box>
   );
 }
