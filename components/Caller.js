@@ -14,6 +14,7 @@ export function Caller(props) {
     setCalledNumbers((c) => {
       const arr = [...calledNumbers];
       arr.push(r);
+      props.updateNumbersCalled(arr);
       return arr;
     });
     setNotCalledNumbers((c) => {
@@ -30,6 +31,7 @@ export function Caller(props) {
             h="35px"
             bg={!calledNumbers.includes(i) ? "tomato" : "green.200"}
             color="black.500"
+            key={i}
           >
             <Box as="span" fontWeight="bold" fontSize="lg">
               {i}

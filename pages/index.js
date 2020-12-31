@@ -14,26 +14,6 @@ import {
 export default function Home() {
   return (
     <div>
-      <Head>
-        <title>90 Number Bingo</title>
-        <link rel="icon" href="/favicon.ico" />
-      </Head>
-
-      <Flex bg="gray.100" padding="10px">
-        <Box p="2">
-          <Heading size="md">Bingo (90 Number)</Heading>
-        </Box>
-        <Box>
-          <Link href="/bingo">
-            <Button colorScheme="blue">Play</Button>
-          </Link>
-        </Box>
-        <Spacer />
-        <Box>
-          <Button colorScheme="blue">Log in</Button>
-        </Box>
-      </Flex>
-
       <Box p={5} shadow="md" borderWidth="1px" flex="1" borderRadius="md">
         <Heading fontSize="xl">Bingo Card</Heading>
         <Text mt={4}>
@@ -62,7 +42,7 @@ export default function Home() {
             change your bingo card.
           </ListItem>
           <ListItem>
-            The caller wwill call the nunmbers 1-90 in random order.
+            The caller will call the nunmbers 1-90 in random order.
           </ListItem>
           <ListItem>
             If your number is called, mark it on the bingo card.
@@ -75,9 +55,12 @@ export default function Home() {
           <ListItem>
             First Five - First 5 numbers on the card are marked
           </ListItem>
-          <ListItem>One Line - All the 5 numbers on a line are marked</ListItem>
           <ListItem>
-            Two Line - All the 10 numbers on two lines are marked
+            One Line - All the 5 numbers on a line are marked (You can also have
+            first, middle and last line winners)
+          </ListItem>
+          <ListItem>
+            Two Lines - All the 10 numbers on two lines are marked
           </ListItem>
           <ListItem>
             Full House - All the 15 numbers on the card are marked
