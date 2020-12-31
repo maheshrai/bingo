@@ -56,7 +56,7 @@ function MyApp({ Component, pageProps }) {
         {!session && (
           <HStack>
             <Button colorScheme="blue" onClick={onOpen}>
-              Log in / Sign Up
+              Login
             </Button>
           </HStack>
         )}
