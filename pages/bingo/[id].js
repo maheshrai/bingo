@@ -1,9 +1,9 @@
-import { VStack, Box, Badge, Text } from "@chakra-ui/react";
+import { Wrap, WrapItem, Box, Divider } from "@chakra-ui/react";
 import { useState } from "react";
-import { BingoCard } from "../components/BingoCard";
-import { createBingoCard } from "../components/CardGenerator";
-import { CardModel, Game, Player, SquareModel } from "../components/Model";
-import { Caller } from "../components/Caller";
+import { BingoCard } from "../../components/BingoCard";
+import { createBingoCard } from "../../components/CardGenerator";
+import { CardModel, Game, Player, SquareModel } from "../../components/Model";
+import { Caller } from "../../components/Caller";
 
 function Bingo() {
   var card1 = createBingoCard();
@@ -68,27 +68,34 @@ function Bingo() {
 
   return (
     <Box p={5} shadow="md" borderWidth="1px" flex="1" borderRadius="md">
-      <VStack spacing="24px">
+      <Wrap>
         {game.players.map((i) => (
-          <Box maxW="lg" borderWidth="1px" borderRadius="lg" overflow="hidden">
-            <BingoCard
-              card={i.card}
-              name={i.name}
-              updateSquare={updateSquare}
-            />
+          <WrapItem>
             <Box
-              mt="1"
-              fontWeight="semibold"
-              as="h4"
-              lineHeight="tight"
-              isTruncated
+              maxW="lg"
+              borderWidth="1px"
+              borderRadius="lg"
+              overflow="hidden"
             >
-              {i.name}
+              <BingoCard
+                card={i.card}
+                name={i.name}
+                updateSquare={updateSquare}
+              />
+              <Box
+                mt="1"
+                fontWeight="semibold"
+                as="h4"
+                lineHeight="tight"
+                isTruncated
+              >
+                {i.name}
+              </Box>
             </Box>
-          </Box>
+          </WrapItem>
         ))}
-        <Caller updateNumbersCalled={updateNumbersCalled}></Caller>
-      </VStack>
+      </Wrap>
+      <Caller updateNumbersCalled={updateNumbersCalled}></Caller>
     </Box>
   );
 }

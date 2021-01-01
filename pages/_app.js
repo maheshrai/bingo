@@ -8,15 +8,18 @@ import {
   Box,
   Spacer,
   Button,
-  Text,
   Modal,
   ModalOverlay,
   ModalContent,
   ModalHeader,
-  ModalFooter,
   ModalBody,
   ModalCloseButton,
   useDisclosure,
+  Menu,
+  MenuButton,
+  MenuList,
+  MenuItem,
+  MenuGroup,
 } from "@chakra-ui/react";
 import { supabase } from "../lib/supabase";
 import Auth from "../components/Auth";
@@ -40,15 +43,15 @@ function MyApp({ Component, pageProps }) {
 
       <Flex bg="gray.100" padding="10px">
         <Box p="2">
-          <Heading size="md">Bingo (90 Number)</Heading>
+          <Heading size="md">Bingo</Heading>
         </Box>
         <HStack>
           <Link href="/">
             <Button colorScheme="blue">Home</Button>
           </Link>
           {session && (
-            <Link href="/play">
-              <Button colorScheme="blue">Play</Button>
+            <Link href="/groups">
+              <Button colorScheme="blue">Groups</Button>
             </Link>
           )}
         </HStack>
@@ -61,20 +64,24 @@ function MyApp({ Component, pageProps }) {
           </HStack>
         )}
         {session && (
-          <HStack>
-            <Text>
-              <Text>{session.user.email}</Text>
-            </Text>
-            <Button
-              colorScheme="blue"
-              onClick={async () => {
-                const { error } = await supabase.auth.signOut();
-                if (error) console.log("Error logging out:", error.message);
-              }}
-            >
-              Sign Out
-            </Button>
-          </HStack>
+          <Menu>
+            <MenuButton as={Button} colorScheme="blue">
+              Profile
+            </MenuButton>
+            <MenuList>
+              <MenuGroup>
+                <MenuItem>{session.user.email}</MenuItem>
+                <MenuItem
+                  onClick={async () => {
+                    const { error } = await supabase.auth.signOut();
+                    if (error) console.log("Error logging out:", error.message);
+                  }}
+                >
+                  Sign Out
+                </MenuItem>
+              </MenuGroup>
+            </MenuList>
+          </Menu>
         )}
       </Flex>
       <Modal isOpen={isOpen} onClose={onClose}>
