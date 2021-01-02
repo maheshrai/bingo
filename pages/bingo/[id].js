@@ -1,51 +1,54 @@
-import { Wrap, WrapItem, Box, Divider } from "@chakra-ui/react";
-import { useState } from "react";
+import { Wrap, WrapItem, Box, Divider, Heading } from "@chakra-ui/react";
+import { useState, useEffect } from "react";
+import { useRouter } from "next/router";
 import { BingoCard } from "../../components/BingoCard";
 import { createBingoCard } from "../../components/CardGenerator";
 import { CardModel, Game, Player, SquareModel } from "../../components/Model";
 import { Caller } from "../../components/Caller";
+import { supabase } from "../../lib/supabase";
 
 function Bingo() {
-  var card1 = createBingoCard();
-  var cm1 = new CardModel();
-  card1.forEach((n, i) => {
-    var sm = new SquareModel();
-    sm.number = n;
-    sm.key = "card1-" + i;
-    cm1.squares.push(sm);
-  });
-
-  var card2 = createBingoCard();
-  var cm2 = new CardModel();
-  card2.forEach((n, i) => {
-    var sm = new SquareModel();
-    sm.number = n;
-    sm.key = "card2-" + i;
-    cm2.squares.push(sm);
-  });
-
-  var card3 = createBingoCard();
-  var cm3 = new CardModel();
-  card3.forEach((n, i) => {
-    var sm = new SquareModel();
-    sm.number = n;
-    sm.key = "card3-" + i;
-    cm3.squares.push(sm);
-  });
-
-  var player1 = new Player();
-  player1.name = "Player 1";
-  player1.card = cm1;
-
-  var player2 = new Player();
-  player2.name = "Player 2";
-  player2.card = cm2;
-
-  var gm = new Game();
-  gm.players = [player1, player2];
-
-  const [game, setGame] = useState(gm);
+  const [game, setGame] = useState(null);
   let [session, setSession] = useState(null);
+  const [group, setGroup] = useState(null);
+  const router = useRouter();
+  const { id } = router.query;
+  useEffect(() => {
+    setSession(supabase.auth.session());
+    supabase.auth.onAuthStateChange((_event, session) => setSession(session));
+  }, []);
+
+  useEffect(() => {
+    fetchMembers();
+  }, []);
+
+  async function fetchMembers() {
+    let { data: grp, error } = await supabase
+      .from("group")
+      .select(`id,name,owner,groupmember(id, name)`)
+      .eq("id", id);
+    setGroup(grp[0]);
+    var game = new Game();
+    console.log(JSON.stringify(group));
+    game.players = [];
+    if (!error && group) {
+      group.groupmember.forEach((gm) => {
+        var p = new Player();
+        p.name = gm.name;
+        let card = createBingoCard();
+        p.card = new CardModel();
+        card.forEach((n, i) => {
+          var sm = new SquareModel();
+          sm.number = n;
+          sm.key = gm.id + "-" + i;
+          p.card.squares.push(sm);
+        });
+        game.players.push(p);
+      });
+    }
+    setGame(game);
+  }
+
   function updateSquare(name, sq, checked) {
     setGame((gm) => {
       const p = gm.players.find((p) => p.name === name);
@@ -68,32 +71,37 @@ function Bingo() {
 
   return (
     <Box p={5} shadow="md" borderWidth="1px" flex="1" borderRadius="md">
+      <Heading paddingBottom="20px">Bingo with {group.name}!</Heading>
+      <Heading as="h4" size="md" paddingBottom="20px">
+        Player cards
+      </Heading>
       <Wrap>
-        {game.players.map((i) => (
-          <WrapItem>
-            <Box
-              maxW="lg"
-              borderWidth="1px"
-              borderRadius="lg"
-              overflow="hidden"
-            >
-              <BingoCard
-                card={i.card}
-                name={i.name}
-                updateSquare={updateSquare}
-              />
+        {game &&
+          game.players.map((i) => (
+            <WrapItem>
               <Box
-                mt="1"
-                fontWeight="semibold"
-                as="h4"
-                lineHeight="tight"
-                isTruncated
+                maxW="lg"
+                borderWidth="1px"
+                borderRadius="lg"
+                overflow="hidden"
               >
-                {i.name}
+                <BingoCard
+                  card={i.card}
+                  name={i.name}
+                  updateSquare={updateSquare}
+                />
+                <Box
+                  mt="1"
+                  fontWeight="semibold"
+                  as="h4"
+                  lineHeight="tight"
+                  isTruncated
+                >
+                  {i.name}
+                </Box>
               </Box>
-            </Box>
-          </WrapItem>
-        ))}
+            </WrapItem>
+          ))}
       </Wrap>
       <Caller updateNumbersCalled={updateNumbersCalled}></Caller>
     </Box>
