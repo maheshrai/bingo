@@ -23,16 +23,16 @@ function Bingo() {
   }, []);
 
   async function fetchMembers() {
-    let { data: grp, error } = await supabase
+    let { data: group, error } = await supabase
       .from("group")
       .select(`id,name,owner,groupmember(id, name)`)
       .eq("id", id);
-    setGroup(grp[0]);
+    setGroup(group[0]);
     var game = new Game();
     console.log(JSON.stringify(group));
     game.players = [];
     if (!error && group) {
-      group.groupmember.forEach((gm) => {
+      group[0].groupmember.forEach((gm) => {
         var p = new Player();
         p.name = gm.name;
         let card = createBingoCard();
@@ -71,7 +71,9 @@ function Bingo() {
 
   return (
     <Box p={5} shadow="md" borderWidth="1px" flex="1" borderRadius="md">
-      <Heading paddingBottom="20px">Bingo with {group.name}!</Heading>
+      <Heading paddingBottom="20px">
+        {group && "Bingo with" + group.name + "!"}
+      </Heading>
       <Heading as="h4" size="md" paddingBottom="20px">
         Player cards
       </Heading>
