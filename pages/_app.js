@@ -20,6 +20,7 @@ import {
   MenuList,
   MenuItem,
   MenuGroup,
+  Text,
 } from "@chakra-ui/react";
 import { supabase } from "../lib/supabase";
 import Auth from "../components/Auth";
@@ -46,14 +47,8 @@ function MyApp({ Component, pageProps }) {
           <Heading size="md">Bingo</Heading>
         </Box>
         <HStack>
-          <Link href="/">
-            <Button colorScheme="blue">Home</Button>
-          </Link>
-          {session && (
-            <Link href="/groups">
-              <Button colorScheme="blue">Groups</Button>
-            </Link>
-          )}
+          <Link href="/">Home</Link>
+          {session && <Link href="/groups">Groups</Link>}
         </HStack>
         <Spacer />
         {!session && (
@@ -65,7 +60,7 @@ function MyApp({ Component, pageProps }) {
         )}
         {session && (
           <Menu>
-            <MenuButton as={Button} colorScheme="blue">
+            <MenuButton as={Button} colorScheme="teal">
               Profile
             </MenuButton>
             <MenuList>
