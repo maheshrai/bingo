@@ -89,27 +89,34 @@ function Play() {
       </Heading>
       <Wrap spacing="30px">
         {game &&
-          game.players.map((i) => (
-            <WrapItem key={i.email}>
-              <Box
-                maxW="lg"
-                borderWidth="1px"
-                borderRadius="lg"
-                overflow="hidden"
-              >
-                <BingoCard player={i} updateSquare={updateSquare} />
+          game.players
+            .filter(
+              (p) =>
+                game.completed ||
+                caller === session.user.email ||
+                p.email === session.user.email
+            )
+            .map((i) => (
+              <WrapItem key={i.email}>
                 <Box
-                  mt="1"
-                  fontWeight="semibold"
-                  as="h4"
-                  lineHeight="tight"
-                  isTruncated
+                  maxW="lg"
+                  borderWidth="1px"
+                  borderRadius="lg"
+                  overflow="hidden"
                 >
-                  {i.name}
+                  <BingoCard player={i} updateSquare={updateSquare} />
+                  <Box
+                    mt="1"
+                    fontWeight="semibold"
+                    as="h4"
+                    lineHeight="tight"
+                    isTruncated
+                  >
+                    {i.name}
+                  </Box>
                 </Box>
-              </Box>
-            </WrapItem>
-          ))}
+              </WrapItem>
+            ))}
       </Wrap>
       <Box paddingTop="30px">
         <Caller
