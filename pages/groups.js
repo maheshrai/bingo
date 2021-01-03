@@ -156,7 +156,7 @@ function Groups() {
           </Popover>
         </HStack>
       </Box>
-      <Wrap>
+      <Wrap spacing="30px">
         {groups &&
           groups.map((g) => (
             <WrapItem>

@@ -1,18 +1,23 @@
 import { Wrap, WrapItem, Box, Divider, Heading } from "@chakra-ui/react";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/router";
-import { BingoCard } from "../../components/BingoCard";
-import { createBingoCard } from "../../components/CardGenerator";
-import { CardModel, Game, Player, SquareModel } from "../../components/Model";
-import { Caller } from "../../components/Caller";
-import { supabase } from "../../lib/supabase";
+import { BingoCard } from "../../../components/BingoCard";
+import { createBingoCard } from "../../../components/CardGenerator";
+import {
+  CardModel,
+  Game,
+  Player,
+  SquareModel,
+} from "../../../components/Model";
+import { Caller } from "../../../components/Caller";
+import { supabase } from "../../../lib/supabase";
 
-function Bingo() {
+function Play() {
   const [game, setGame] = useState(null);
   let [session, setSession] = useState(null);
   const [group, setGroup] = useState(null);
   const router = useRouter();
-  const { id } = router.query;
+  const { gameid } = router.query;
   useEffect(() => {
     setSession(supabase.auth.session());
     supabase.auth.onAuthStateChange((_event, session) => setSession(session));
@@ -26,7 +31,7 @@ function Bingo() {
     let { data: group, error } = await supabase
       .from("group")
       .select(`id,name,owner,groupmember(id, name)`)
-      .eq("id", id);
+      .eq("id", gameid);
     setGroup(group[0]);
     var game = new Game();
     console.log(JSON.stringify(group));
@@ -72,7 +77,7 @@ function Bingo() {
   return (
     <Box p={5} shadow="md" borderWidth="1px" flex="1" borderRadius="md">
       <Heading paddingBottom="20px">
-        {group && "Bingo with" + group.name + "!"}
+        {group && "Bingo with " + group.name + "!"}
       </Heading>
       <Heading as="h4" size="md" paddingBottom="20px">
         Player cards
@@ -110,4 +115,4 @@ function Bingo() {
   );
 }
 
-export default Bingo;
+export default Play;
