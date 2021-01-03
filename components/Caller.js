@@ -31,7 +31,7 @@ export function Caller(props) {
             h="35px"
             bg={!calledNumbers.includes(i) ? "tomato" : "green.200"}
             color="black.500"
-            key={i}
+            key={"caller-" + i}
           >
             <Box as="span" fontWeight="bold" fontSize="lg">
               {i}
@@ -39,9 +39,11 @@ export function Caller(props) {
           </Center>
         ))}
       </SimpleGrid>
-      <Button colorScheme="blue" onClick={() => callNumber()}>
-        Call Next Number
-      </Button>
+      {props.isCaller && (
+        <Button colorScheme="blue" onClick={() => callNumber()}>
+          Call Next Number
+        </Button>
+      )}
     </VStack>
   );
 }

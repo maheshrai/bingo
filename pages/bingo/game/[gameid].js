@@ -14,8 +14,9 @@ import { supabase } from "../../../lib/supabase";
 
 function Play() {
   const [game, setGame] = useState(null);
-  let [session, setSession] = useState(null);
+  const [caller, setCaller] = useState("");
   const [group, setGroup] = useState(null);
+  let [session, setSession] = useState(null);
   const router = useRouter();
   const { gameid } = router.query;
   useEffect(() => {
@@ -28,35 +29,38 @@ function Play() {
   }, []);
 
   async function fetchMembers() {
-    let { data: group, error } = await supabase
-      .from("group")
-      .select(`id,name,owner,groupmember(id, name)`)
+    let { data, error } = await supabase
+      .from("game")
+      .select(`*,player(id,name,email,card),group(id,name)`)
       .eq("id", gameid);
-    setGroup(group[0]);
-    var game = new Game();
-    console.log(JSON.stringify(group));
-    game.players = [];
-    if (!error && group) {
-      group[0].groupmember.forEach((gm) => {
+    if (error) {
+    } else {
+      console.log(JSON.stringify(data));
+      var game = new Game();
+      game.players = [];
+      setGroup(data[0].group);
+      setCaller(data[0].caller);
+      data[0].player.forEach((player) => {
         var p = new Player();
-        p.name = gm.name;
-        let card = createBingoCard();
+        p.name = player.name;
+        let card = player.card;
         p.card = new CardModel();
         card.forEach((n, i) => {
           var sm = new SquareModel();
           sm.number = n;
-          sm.key = gm.id + "-" + i;
+          sm.key = data[0].id + "-" + player.id + "-" + i;
           p.card.squares.push(sm);
         });
         game.players.push(p);
       });
+      setGame(game);
     }
-    setGame(game);
   }
 
-  function updateSquare(name, sq, checked) {
+  function updateSquare(player, sq, checked) {
+    if (player.email !== session.user.email) return;
     setGame((gm) => {
-      const p = gm.players.find((p) => p.name === name);
+      const p = gm.players.find((p) => p.email === player.email);
       if (p) {
         var cm = new CardModel();
         cm.squares = p.card.squares.map((i) =>
@@ -77,26 +81,22 @@ function Play() {
   return (
     <Box p={5} shadow="md" borderWidth="1px" flex="1" borderRadius="md">
       <Heading paddingBottom="20px">
-        {group && "Bingo with " + group.name + "!"}
+        {group && "Play bingo with " + group.name + "!"}
       </Heading>
       <Heading as="h4" size="md" paddingBottom="20px">
         Player cards
       </Heading>
-      <Wrap>
+      <Wrap spacing="30px">
         {game &&
           game.players.map((i) => (
-            <WrapItem>
+            <WrapItem key="i.email">
               <Box
                 maxW="lg"
                 borderWidth="1px"
                 borderRadius="lg"
                 overflow="hidden"
               >
-                <BingoCard
-                  card={i.card}
-                  name={i.name}
-                  updateSquare={updateSquare}
-                />
+                <BingoCard player={i} updateSquare={updateSquare} />
                 <Box
                   mt="1"
                   fontWeight="semibold"
@@ -110,7 +110,12 @@ function Play() {
             </WrapItem>
           ))}
       </Wrap>
-      <Caller updateNumbersCalled={updateNumbersCalled}></Caller>
+      <Box paddingTop="30px">
+        <Caller
+          updateNumbersCalled={updateNumbersCalled}
+          isCaller={session && session.user && caller === session.user.email}
+        ></Caller>
+      </Box>
     </Box>
   );
 }
