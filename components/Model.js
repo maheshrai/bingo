@@ -1,7 +1,7 @@
 export function SquareModel() {
   this.number = 0;
   this.checked = false;
-  this.key = '';
+  this.key = "";
 }
 
 export function CardModel() {
@@ -9,7 +9,8 @@ export function CardModel() {
 }
 
 export function Player() {
-  this.name = '';
+  this.name = "";
+  this.email = "";
   this.card = new CardModel();
 }
 

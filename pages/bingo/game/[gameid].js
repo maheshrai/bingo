@@ -43,6 +43,7 @@ function Play() {
       data[0].player.forEach((player) => {
         var p = new Player();
         p.name = player.name;
+        p.email = player.email;
         let card = player.card;
         p.card = new CardModel();
         card.forEach((n, i) => {
@@ -67,7 +68,7 @@ function Play() {
           i.number === sq.number ? { ...i, checked: checked } : i
         );
         var gm2 = { ...gm };
-        const p2 = gm2.players.find((p) => p.name === name);
+        const p2 = gm2.players.find((p) => p.email === player.email);
         p2.card = cm;
         return gm2;
       }
@@ -89,7 +90,7 @@ function Play() {
       <Wrap spacing="30px">
         {game &&
           game.players.map((i) => (
-            <WrapItem key="i.email">
+            <WrapItem key={i.email}>
               <Box
                 maxW="lg"
                 borderWidth="1px"
