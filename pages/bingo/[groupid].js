@@ -18,6 +18,7 @@ import { useRouter } from "next/router";
 import { createBingoCard } from "../../components/CardGenerator";
 import { CardModel, Game, Player, SquareModel } from "../../components/Model";
 import { supabase } from "../../lib/supabase";
+import Link from "next/link";
 
 function Bingo() {
   let [session, setSession] = useState(null);
@@ -152,7 +153,9 @@ function Bingo() {
                   )}
                 </Td>
                 <Td>
-                  <Button color="green.500">View</Button>
+                  <Link href={"/bingo/game/" + gm.id}>
+                    <Button color="green.500">View</Button>
+                  </Link>
                 </Td>
               </Tr>
             ))}
