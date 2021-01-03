@@ -95,9 +95,8 @@ function Bingo() {
       </Heading>
 
       <HStack paddingBottom="20px">
-        <Text>Pick the caller for the game</Text>
         <Select
-          placeholder="Select option"
+          placeholder="Pick the caller for the game"
           maxW="sm"
           value={caller}
           onChange={(e) => setCaller(e.target.value)}
@@ -121,46 +120,49 @@ function Bingo() {
       <Heading as="h4" size="md" paddingBottom="20px">
         Games
       </Heading>
-
-      <Table variant="striped" colorScheme="gray" size="md">
-        <Thead>
-          <Tr>
-            <Th>Started on</Th>
-            <Th>Caller</Th>
-            <Th>Status</Th>
-            <Th>Link to the game</Th>
-          </Tr>
-        </Thead>
-        <Tbody>
-          {group &&
-            group.game.map((gm) => (
-              <Tr>
-                <Td>{gm.created}</Td>
-                <Td>{gm.caller}</Td>
-                <Td>
-                  {gm.completed ? (
-                    <Badge colorScheme="green" variant="outline">
-                      Completed
-                    </Badge>
-                  ) : gm.started ? (
-                    <Badge colorScheme="blue" variant="outline">
-                      Started
-                    </Badge>
-                  ) : (
-                    <Badge colorScheme="purple" variant="outline">
-                      Not Started
-                    </Badge>
-                  )}
-                </Td>
-                <Td>
-                  <Link href={"/bingo/game/" + gm.id}>
-                    <Button color="green.500">View</Button>
-                  </Link>
-                </Td>
-              </Tr>
-            ))}
-        </Tbody>
-      </Table>
+      <Text>Click anywhere on the row to view the game</Text>
+      <Box>
+        <Table variant="striped" colorScheme="gray" maxW="lg">
+          <Thead>
+            <Tr>
+              <Th>Date</Th>
+              <Th>Caller</Th>
+              <Th>Status</Th>
+            </Tr>
+          </Thead>
+          <Tbody>
+            {group &&
+              group.game.map((gm) => (
+                <Link href={"/bingo/game/" + gm.id}>
+                  <Tr>
+                    <Td>{gm.created.substring(0, 10)}</Td>
+                    <Td>
+                      {
+                        group.groupmember.find((p) => p.email === gm.caller)
+                          .name
+                      }
+                    </Td>
+                    <Td>
+                      {gm.completed ? (
+                        <Badge colorScheme="green" variant="outline">
+                          Completed
+                        </Badge>
+                      ) : gm.started ? (
+                        <Badge colorScheme="blue" variant="outline">
+                          Started
+                        </Badge>
+                      ) : (
+                        <Badge colorScheme="purple" variant="outline">
+                          Not Started
+                        </Badge>
+                      )}
+                    </Td>
+                  </Tr>
+                </Link>
+              ))}
+          </Tbody>
+        </Table>
+      </Box>
     </Box>
   );
 }
