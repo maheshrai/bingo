@@ -48,12 +48,12 @@ function MyApp({ Component, pageProps }) {
         </Box>
         <HStack>
           <Link href="/">Home</Link>
-          {session && <Link href="/groups">Groups</Link>}
+          {session && <Link href="/groups">Play</Link>}
         </HStack>
         <Spacer />
         {!session && (
           <HStack>
-            <Button colorScheme="blue" onClick={onOpen}>
+            <Button colorScheme="teal" onClick={onOpen}>
               Login
             </Button>
           </HStack>

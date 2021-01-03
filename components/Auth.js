@@ -83,7 +83,7 @@ export default function Auth(props) {
       <HStack paddingTop="20px">
         <Spacer></Spacer>
         <Button
-          colorScheme="blue"
+          colorScheme="teal"
           onClick={(e) => {
             e.preventDefault();
             handleLogin("SIGNUP", email, password);
@@ -92,7 +92,7 @@ export default function Auth(props) {
           Sign Up
         </Button>
         <Button
-          colorScheme="blue"
+          colorScheme="teal"
           onClick={(e) => {
             e.preventDefault();
             handleLogin("LOGIN", email, password);
