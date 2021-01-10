@@ -13,6 +13,7 @@ export function CardModel() {
 export function Player() {
   this.name = "";
   this.email = "";
+  this.id = 0;
   this.card = new CardModel();
 }
 
@@ -24,6 +25,7 @@ export function Group() {
 export function Game() {
   this.players = [];
   this.started = false;
+  this.completed = false;
   this.calledNumbers = [];
   this.caller = "";
   this.Group = new Group();

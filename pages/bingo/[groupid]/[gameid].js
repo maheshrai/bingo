@@ -1,4 +1,12 @@
-import { Wrap, WrapItem, Box, Heading, useToast } from "@chakra-ui/react";
+import {
+  Wrap,
+  WrapItem,
+  Box,
+  Heading,
+  useToast,
+  Text,
+  Button,
+} from "@chakra-ui/react";
 import { useState, useEffect, useContext } from "react";
 import { useRouter } from "next/router";
 import { BingoCard } from "../../../components/BingoCard";
@@ -9,6 +17,7 @@ import {
   SquareModel,
 } from "../../../components/Model";
 import { Caller } from "../../../components/Caller";
+import { createBingoCard } from "../../../components/CardGenerator";
 import { supabase } from "../../../lib/supabase";
 import UserContext from "../../../lib/UserContext";
 
@@ -44,16 +53,34 @@ function Play() {
       setGame((gm) => {
         var gm2 = { ...gm };
         gm2.calledNumbers = updatedGame.calledNumbers;
+        gm2.started = updatedGame.started;
+        gm2.completed = updatedGame.completed;
         return gm2;
       });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [updatedGame]);
 
-  // Update to game recieved from Postgres
+  // Update to player recieved from Postgres
   useEffect(() => {
     if (updatedPlayer) {
       console.log("Player Update >>> " + JSON.stringify(updatedPlayer));
+      let cm = new CardModel();
+      updatedPlayer.card.forEach((n, i) => {
+        var sm = new SquareModel();
+        sm.number = n;
+        sm.key = gameid + "-" + updatedPlayer.id + "-" + i;
+        cm.squares.push(sm);
+      });
+      setGame((gm) => {
+        const p = gm.players.find((p) => p.id === updatedPlayer.id);
+        if (p) {
+          var gm2 = { ...gm };
+          const p2 = gm2.players.find((p) => p.id === updatedPlayer.id);
+          p2.card = cm;
+          return gm2;
+        }
+      });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [updatedPlayer]);
@@ -78,10 +105,13 @@ function Play() {
     } else {
       gametemp.players = [];
       gametemp.calledNumbers = data[0].calledNumbers;
+      gametemp.started = data[0].started;
+      gametemp.completed = data[0].completed;
       data[0].player.forEach((player) => {
         var p = new Player();
         p.name = player.name;
         p.email = player.email;
+        p.id = player.id;
         let card = player.card;
         p.card = new CardModel();
         card.forEach((n, i) => {
@@ -95,6 +125,25 @@ function Play() {
       gametemp.group = data[0].group;
       gametemp.caller = data[0].caller;
       setGame(gametemp);
+    }
+  }
+
+  async function assignNewCard(player) {
+    let card = createBingoCard();
+    const { data, error } = await supabase
+      .from("player")
+      .update({ card: card })
+      .eq("id", player.id);
+    if (error) {
+    }
+  }
+
+  async function startGame() {
+    const { data, error } = await supabase
+      .from("game")
+      .update({ started: true })
+      .eq("id", gameid);
+    if (error) {
     }
   }
 
@@ -124,10 +173,25 @@ function Play() {
 
   return (
     <Box p={5} shadow="md" borderWidth="1px" flex="1" borderRadius="md">
-      <Heading paddingBottom="20px">
+      <Heading paddingBottom="10px">
         {game && game.group && "Play bingo with " + game.group.name + "!"}
       </Heading>
-      <Heading as="h4" size="md" paddingBottom="20px">
+      <Box paddingBottom="5px">
+        {game && game.started && (
+          <Text>
+            {game && game.calledNumbers && game && game.calledNumbers.length > 0
+              ? "Last number called was " +
+                game.calledNumbers[game.calledNumbers.length - 1]
+              : "No number called yet!"}
+          </Text>
+        )}
+        {game && !game.started && game.caller === user.email && (
+          <Button colorScheme="teal" onClick={() => startGame()}>
+            Start Game!
+          </Button>
+        )}
+      </Box>
+      <Heading as="h4" size="md" paddingBottom="10px">
         Player cards
       </Heading>
       <Wrap spacing="30px">
@@ -143,23 +207,12 @@ function Play() {
             )
             .map((i) => (
               <WrapItem key={i.email}>
-                <Box
-                  maxW="lg"
-                  borderWidth="1px"
-                  borderRadius="lg"
-                  overflow="hidden"
-                >
-                  <BingoCard player={i} updateSquare={updateSquare} />
-                  <Box
-                    mt="1"
-                    fontWeight="semibold"
-                    as="h4"
-                    lineHeight="tight"
-                    isTruncated
-                  >
-                    {i.name}
-                  </Box>
-                </Box>
+                <BingoCard
+                  player={i}
+                  allowCardUpdate={!game.started && i.email === user.email}
+                  updateSquare={updateSquare}
+                  assignNewCard={assignNewCard}
+                />
               </WrapItem>
             ))}
       </Wrap>
@@ -168,6 +221,7 @@ function Play() {
           updateCalledNumbers={updateCalledNumbers}
           calledNumbers={game && game.calledNumbers ? game.calledNumbers : []}
           isCaller={user && game && game.caller === user.email}
+          started={game && game.started}
         ></Caller>
       </Box>
     </Box>

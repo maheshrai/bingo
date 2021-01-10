@@ -40,8 +40,8 @@ export function Caller(props) {
           </Center>
         ))}
       </SimpleGrid>
-      {props.isCaller && (
-        <Button colorScheme="blue" onClick={() => callNumber()}>
+      {props.isCaller && props.started && (
+        <Button colorScheme="teal" onClick={() => callNumber()}>
           Call Next Number
         </Button>
       )}
