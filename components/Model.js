@@ -1,3 +1,5 @@
+import Groups from "../pages/groups";
+
 export function SquareModel() {
   this.number = 0;
   this.checked = false;
@@ -14,8 +16,15 @@ export function Player() {
   this.card = new CardModel();
 }
 
+export function Group() {
+  this.name = "";
+  this.id = 0;
+}
+
 export function Game() {
   this.players = [];
   this.started = false;
   this.numbersCalled = [];
+  this.caller = "";
+  this.Group = new Group();
 }

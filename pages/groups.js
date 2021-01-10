@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useContext } from "react";
 import {
   Wrap,
   WrapItem,
@@ -9,7 +9,6 @@ import {
   HStack,
   Spacer,
   Text,
-  VStack,
   Divider,
   Tooltip,
   Popover,
@@ -17,76 +16,106 @@ import {
   PopoverContent,
   PopoverHeader,
   PopoverBody,
-  PopoverFooter,
   PopoverArrow,
   PopoverCloseButton,
   FormControl,
   FormLabel,
-  FormErrorMessage,
   FormHelperText,
   Input,
   useToast,
   IconButton,
 } from "@chakra-ui/react";
 import Link from "next/link";
+import { useRouter } from "next/router";
 import { supabase } from "../lib/supabase";
-import {
-  AddIcon,
-  DeleteIcon,
-  EditIcon,
-  PlusSquareIcon,
-  SearchIcon,
-} from "@chakra-ui/icons";
+import { AddIcon, DeleteIcon, PlusSquareIcon } from "@chakra-ui/icons";
+import UserContext from "../lib/UserContext";
 
 function Groups() {
-  let [session, setSession] = useState(null);
   const [groupName, setGroupName] = useState("");
   const [name, setName] = useState("");
+  const [ownerName, setOwnerName] = useState("");
   const [email, setEmail] = useState("");
   const [groups, setGroups] = useState([]);
 
   const handleGroupNameChange = (event) => setGroupName(event.target.value);
   const handleNameChange = (event) => setName(event.target.value);
   const handleEmailChange = (event) => setEmail(event.target.value);
+  const handleOwnerNameChange = (event) => setOwnerName(event.target.value);
 
   const toast = useToast();
 
-  useEffect(() => {
-    setSession(supabase.auth.session());
-    supabase.auth.onAuthStateChange((_event, session) => setSession(session));
-  }, []);
+  const { user } = useContext(UserContext);
+  const router = useRouter();
 
   useEffect(() => {
     fetchMyGroups();
   }, []);
 
   async function fetchMyGroups() {
-    let email = supabase.auth.session().user.email;
-    let { data: group, error } = await supabase
-      .from("group")
-      .select(`id,name,owner,groupmember(id, name)`)
-      .eq("owner", email);
-    console.log(JSON.stringify(group));
-    setGroups(group);
+    let { data: groupmember, error } = await supabase
+      .from("groupmember")
+      .select("group")
+      .eq("email", user.email);
+
+    if (!error) {
+      let ids = groupmember.map((gm) => gm.group);
+      let { data: group } = await supabase
+        .from("group")
+        .select(`id,name,owner,groupmember(id, name)`)
+        .in("id", ids);
+      console.log(JSON.stringify(group));
+      setGroups(group);
+    }
   }
 
   async function deleteGroup(id) {
-    let deleted = await supabase.from("groupmember").delete().eq("group", id);
-    deleted = await supabase.from("group").delete().eq("id", id);
-    fetchMyGroups();
+    // delete the game and players
+    let { data: gm, error } = await supabase
+      .from("game")
+      .select(`id,player(id)`)
+      .eq("group", id);
+    if (!error) {
+      let playerids = [];
+      gm.forEach((g) => {
+        g.player.forEach((p) => playerids.push(p.id));
+      });
+      // delete players
+      await supabase.from("player").delete().in("id", playerids);
+      // dlete game
+      await supabase.from("game").delete().eq("group", id);
+      // delete group members
+      await supabase.from("groupmember").delete().eq("group", id);
+      // delet ethe group
+      const { data, error } = await supabase
+        .from("group")
+        .delete()
+        .eq("id", id);
+      if (!error) {
+        fetchMyGroups();
+      } else {
+        toast({
+          title: "failed to delete group",
+          description: error.message,
+          status: "error",
+          duration: 4000,
+          isClosable: true,
+        });
+      }
+    }
   }
 
   async function addGroupMember(group) {
     const { data, error } = await supabase
       .from("groupmember")
-      .insert([{ name: name, email: email, group: group }]);
+      .insert([{ group: group, name: name, email: user.email }]);
     fetchMyGroups();
   }
 
   async function createGroup() {
-    const { data, error } = await supabase
+    const { data: group, error } = await supabase
       .from("group")
-      .insert([{ name: groupName, owner: session.user.email }]);
+      .insert([{ name: groupName, owner: user.email }]);
     if (error) {
       console.log("Error logging out:", error.message);
       toast({
@@ -97,18 +126,12 @@ function Groups() {
         isClosable: true,
       });
     } else {
-      // Add the owner as group member
-      const { d, e } = await supabase.from("groupmember").insert([
-        {
-          group: data[0].id,
-          name: session.user.email,
-          email: session.user.email,
-        },
-      ]);
-      console.log(JSON.stringify(data));
+      const { data, error } = await supabase
+        .from("groupmember")
+        .insert([{ group: group[0].id, name: ownerName, email: user.email }]);
       toast({
         title: "Group created",
-        description: "Group was created. " + data[0].id,
+        description: "Group was created. " + group[0].id,
         status: "success",
         duration: 1000,
         isClosable: true,
@@ -134,13 +157,22 @@ function Groups() {
               <PopoverHeader>Create a new group</PopoverHeader>
               <PopoverBody>
                 <FormControl id="email">
-                  <FormLabel>Name</FormLabel>
+                  <FormLabel>Group Name</FormLabel>
                   <Input
                     type="text"
                     onChange={handleGroupNameChange}
                     value={groupName}
                   />
                   <FormHelperText>Name of your new bingo group</FormHelperText>
+                </FormControl>
+                <FormControl id="name">
+                  <FormLabel>Your name in the group</FormLabel>
+                  <Input
+                    type="text"
+                    onChange={handleOwnerNameChange}
+                    value={ownerName}
+                  />
+                  <FormHelperText>Name of the owner</FormHelperText>
                 </FormControl>
                 <HStack>
                   <Spacer></Spacer>
@@ -159,7 +191,7 @@ function Groups() {
       <Wrap spacing="30px">
         {groups &&
           groups.map((g) => (
-            <WrapItem>
+            <WrapItem key={"group-" + g.id}>
               <Box
                 maxW="sm"
                 borderWidth="1px"
@@ -171,7 +203,7 @@ function Groups() {
                     {g.name}
                   </Heading>
                   <Spacer></Spacer>
-                  {session.user.email === g.owner && (
+                  {user.email === g.owner && (
                     <IconButton
                       aria-label="Delete group"
                       color="tomato"
@@ -189,7 +221,7 @@ function Groups() {
                     <Box p="6">
                       <Wrap>
                         {g.groupmember.map((gm) => (
-                          <WrapItem>
+                          <WrapItem key={"group-" + g.id + "-" + gm.name}>
                             <Tooltip label={gm.name} fontSize="md">
                               <Avatar name={gm.name} />
                             </Tooltip>

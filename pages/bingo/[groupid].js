@@ -12,38 +12,47 @@ import {
   HStack,
   Button,
   Text,
+  useToast,
 } from "@chakra-ui/react";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useContext } from "react";
 import { useRouter } from "next/router";
 import { createBingoCard } from "../../components/CardGenerator";
 import { CardModel, Game, Player, SquareModel } from "../../components/Model";
 import { supabase } from "../../lib/supabase";
 import Link from "next/link";
+import UserContext from "../../lib/UserContext";
 
 function Bingo() {
-  let [session, setSession] = useState(null);
   const [group, setGroup] = useState(null);
   const [caller, setCaller] = useState("");
   const router = useRouter();
+  const { user } = useContext(UserContext);
   const { groupid } = router.query;
-  useEffect(() => {
-    setSession(supabase.auth.session());
-    supabase.auth.onAuthStateChange((_event, session) => setSession(session));
-  }, []);
+  const toast = useToast();
 
   useEffect(() => {
     fetchMembers();
   }, []);
 
   async function fetchMembers() {
+    if (!user) {
+      router.push("/");
+      return;
+    }
     let { data: group, error } = await supabase
       .from("group")
       .select(
         `id,name,owner,groupmember(id, name, email),game(id,caller,started,created,completed)`
       )
       .eq("id", groupid);
-    if (group && group.length === 1) setGroup(group[0]);
-    else return;
+    if (group && group.length === 1) {
+      if (group[0].groupmember.find((m) => m.email === user.email))
+        setGroup(group[0]);
+      else {
+        router.push("/groups");
+        return;
+      }
+    } else router.push("/groups");
 
     var game = new Game();
     console.log(JSON.stringify(group));
@@ -66,12 +75,17 @@ function Bingo() {
   }
 
   async function createGame() {
-    alert("here");
     const { data, error } = await supabase
       .from("game")
       .insert([{ caller: caller, group: groupid, calledNumbers: [] }]);
     if (error) {
-      alert(error.message);
+      toast({
+        title: "failed to create game",
+        description: error.message,
+        status: "error",
+        duration: 4000,
+        isClosable: true,
+      });
     } else {
       let gameId = data[0].id;
       var insertArr = [];
@@ -103,7 +117,9 @@ function Bingo() {
         >
           {group &&
             group.groupmember.map((gm) => (
-              <option value={gm.email}>{gm.name}</option>
+              <option value={gm.email} key={gm.email}>
+                {gm.name}
+              </option>
             ))}
         </Select>
         <Button
@@ -133,7 +149,10 @@ function Bingo() {
           <Tbody>
             {group &&
               group.game.map((gm) => (
-                <Link href={"/bingo/game/" + gm.id}>
+                <Link
+                  href={"/bingo/" + groupid + "/" + gm.id}
+                  key={"game-" + gm.id}
+                >
                   <Tr>
                     <Td>{gm.created.substring(0, 10)}</Td>
                     <Td>

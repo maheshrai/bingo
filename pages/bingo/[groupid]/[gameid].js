@@ -1,8 +1,7 @@
-import { Wrap, WrapItem, Box, Divider, Heading } from "@chakra-ui/react";
-import { useState, useEffect } from "react";
+import { Wrap, WrapItem, Box, Heading, useToast } from "@chakra-ui/react";
+import { useState, useEffect, useContext } from "react";
 import { useRouter } from "next/router";
 import { BingoCard } from "../../../components/BingoCard";
-import { createBingoCard } from "../../../components/CardGenerator";
 import {
   CardModel,
   Game,
@@ -11,35 +10,38 @@ import {
 } from "../../../components/Model";
 import { Caller } from "../../../components/Caller";
 import { supabase } from "../../../lib/supabase";
+import UserContext from "../../../lib/UserContext";
 
 function Play() {
+  const toast = useToast();
   const [game, setGame] = useState(null);
-  const [caller, setCaller] = useState("");
-  const [group, setGroup] = useState(null);
-  let [session, setSession] = useState(null);
   const router = useRouter();
-  const { gameid } = router.query;
-  useEffect(() => {
-    setSession(supabase.auth.session());
-    supabase.auth.onAuthStateChange((_event, session) => setSession(session));
-  }, []);
+  const { user } = useContext(UserContext);
+  const { groupid, gameid } = router.query;
 
   useEffect(() => {
-    fetchMembers();
+    if (!game) fetchGame();
   }, []);
 
-  async function fetchMembers() {
+  async function fetchGame() {
+    if (!gameid) return;
     let { data, error } = await supabase
       .from("game")
       .select(`*,player(id,name,email,card),group(id,name)`)
       .eq("id", gameid);
+    var gametemp = new Game();
     if (error) {
+      console.log("Error logging out:", error.message);
+      toast({
+        title: "Failed to load game",
+        description: error.message,
+        status: "error",
+        duration: 4000,
+        isClosable: true,
+      });
     } else {
-      console.log(JSON.stringify(data));
-      var game = new Game();
-      game.players = [];
-      setGroup(data[0].group);
-      setCaller(data[0].caller);
+      gametemp.players = [];
+      gametemp.numbersCalled = data[0].calledNumbers;
       data[0].player.forEach((player) => {
         var p = new Player();
         p.name = player.name;
@@ -52,14 +54,16 @@ function Play() {
           sm.key = data[0].id + "-" + player.id + "-" + i;
           p.card.squares.push(sm);
         });
-        game.players.push(p);
+        gametemp.players.push(p);
       });
-      setGame(game);
+      gametemp.group = data[0].group;
+      gametemp.caller = data[0].caller;
+      setGame(gametemp);
     }
   }
 
   function updateSquare(player, sq, checked) {
-    if (player.email !== session.user.email) return;
+    if (player.email !== user.email) return;
     setGame((gm) => {
       const p = gm.players.find((p) => p.email === player.email);
       if (p) {
@@ -77,24 +81,30 @@ function Play() {
 
   async function updateNumbersCalled(nums) {
     // TBD
+    let replaced = await supabase
+      .from("game")
+      .update({ calledNumbers: nums })
+      .eq("id", gameid);
   }
 
   return (
     <Box p={5} shadow="md" borderWidth="1px" flex="1" borderRadius="md">
       <Heading paddingBottom="20px">
-        {group && "Play bingo with " + group.name + "!"}
+        {game && game.group && "Play bingo with " + game.group.name + "!"}
       </Heading>
       <Heading as="h4" size="md" paddingBottom="20px">
         Player cards
       </Heading>
       <Wrap spacing="30px">
-        {game &&
+        {user &&
+          game &&
+          game.players &&
           game.players
             .filter(
               (p) =>
                 game.completed ||
-                caller === session.user.email ||
-                p.email === session.user.email
+                game.caller === user.email ||
+                p.email === user.email
             )
             .map((i) => (
               <WrapItem key={i.email}>
@@ -121,7 +131,8 @@ function Play() {
       <Box paddingTop="30px">
         <Caller
           updateNumbersCalled={updateNumbersCalled}
-          isCaller={session && session.user && caller === session.user.email}
+          calledNumbers={game && game.numbersCalled}
+          isCaller={user && game && game.caller === user.email}
         ></Caller>
       </Box>
     </Box>
