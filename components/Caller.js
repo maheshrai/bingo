@@ -2,24 +2,22 @@ import { useState, useEffect } from "react";
 import { Center, Box, SimpleGrid, Button, VStack } from "@chakra-ui/react";
 import { getRandomIntInclusive } from "./CardGenerator";
 export function Caller(props) {
+  // Numbers array
   const numbers = [];
   for (var i = 1; i <= 90; i++) {
     numbers.push(i);
   }
-  const [calledNumbers, setCalledNumbers] = useState([]);
-  useEffect(() => {
-    setCalledNumbers(props.calledNumbers);
-  }, []);
+
+  // Number called
   function callNumber() {
-    let notCalledNumbers = numbers.filter((n) => !calledNumbers.includes(n));
+    let notCalledNumbers = numbers.filter(
+      (n) => !props.calledNumbers.includes(n)
+    );
     var r = getRandomIntInclusive(0, notCalledNumbers.length - 1);
     r = notCalledNumbers[r];
-    setCalledNumbers((c) => {
-      const arr = [...calledNumbers];
-      arr.push(r);
-      props.updateNumbersCalled(arr);
-      return arr;
-    });
+    const arr = [...props.calledNumbers];
+    arr.push(r);
+    props.updateCalledNumbers(arr);
   }
   return (
     <VStack>
@@ -29,7 +27,7 @@ export function Caller(props) {
             w="35px"
             h="35px"
             bg={
-              calledNumbers && calledNumbers.includes(i)
+              props.calledNumbers && props.calledNumbers.includes(i)
                 ? "green.200"
                 : "tomato"
             }

@@ -24,7 +24,7 @@ export function Group() {
 export function Game() {
   this.players = [];
   this.started = false;
-  this.numbersCalled = [];
+  this.calledNumbers = [];
   this.caller = "";
   this.Group = new Group();
 }

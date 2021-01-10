@@ -108,7 +108,7 @@ function Groups() {
   async function addGroupMember(group) {
     const { data, error } = await supabase
       .from("groupmember")
-      .insert([{ group: group, name: name, email: user.email }]);
+      .insert([{ group: group, name: name, email: email }]);
     fetchMyGroups();
   }
 

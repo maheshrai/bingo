@@ -18,10 +18,45 @@ function Play() {
   const router = useRouter();
   const { user } = useContext(UserContext);
   const { groupid, gameid } = router.query;
+  const [updatedGame, handleUpdatedGame] = useState(null);
+  const [updatedPlayer, handleUpdatedPlayer] = useState(null);
 
   useEffect(() => {
-    if (!game) fetchGame();
+    fetchGame();
+    const myGameSubscription = supabase
+      .from("game:id=eq." + gameid)
+      .on("UPDATE", (payload) => handleUpdatedGame(payload.new))
+      .subscribe();
+    const myPlayerSubscription = supabase
+      .from("player:game=eq." + gameid)
+      .on("UPDATE", (payload) => handleUpdatedPlayer(payload.new))
+      .subscribe();
+    return () => {
+      myGameSubscription.unsubscribe();
+      myPlayerSubscription.unsubscribe();
+    };
   }, []);
+
+  // Update to game recieved from Postgres
+  useEffect(() => {
+    if (updatedGame) {
+      console.log("Game Update >>> " + JSON.stringify(updatedGame));
+      setGame((gm) => {
+        var gm2 = { ...gm };
+        gm2.calledNumbers = updatedGame.calledNumbers;
+        return gm2;
+      });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [updatedGame]);
+
+  // Update to game recieved from Postgres
+  useEffect(() => {
+    if (updatedPlayer) {
+      console.log("Player Update >>> " + JSON.stringify(updatedPlayer));
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [updatedPlayer]);
 
   async function fetchGame() {
     if (!gameid) return;
@@ -29,6 +64,7 @@ function Play() {
       .from("game")
       .select(`*,player(id,name,email,card),group(id,name)`)
       .eq("id", gameid);
+    console.log(JSON.stringify(data));
     var gametemp = new Game();
     if (error) {
       console.log("Error logging out:", error.message);
@@ -41,7 +77,7 @@ function Play() {
       });
     } else {
       gametemp.players = [];
-      gametemp.numbersCalled = data[0].calledNumbers;
+      gametemp.calledNumbers = data[0].calledNumbers;
       data[0].player.forEach((player) => {
         var p = new Player();
         p.name = player.name;
@@ -79,9 +115,8 @@ function Play() {
     });
   }
 
-  async function updateNumbersCalled(nums) {
-    // TBD
-    let replaced = await supabase
+  async function updateCalledNumbers(nums) {
+    let { data, error } = await supabase
       .from("game")
       .update({ calledNumbers: nums })
       .eq("id", gameid);
@@ -130,8 +165,8 @@ function Play() {
       </Wrap>
       <Box paddingTop="30px">
         <Caller
-          updateNumbersCalled={updateNumbersCalled}
-          calledNumbers={game && game.numbersCalled}
+          updateCalledNumbers={updateCalledNumbers}
+          calledNumbers={game && game.calledNumbers ? game.calledNumbers : []}
           isCaller={user && game && game.caller === user.email}
         ></Caller>
       </Box>
