@@ -154,8 +154,18 @@ function Play() {
     }
   }
 
+  async function completeGame() {
+    const { data, error } = await supabase
+      .from("game")
+      .update({ completed: true })
+      .eq("id", gameid);
+    if (error) {
+    }
+  }
+
   async function updateSquare(player, sq, checked) {
     if (player.email !== user.email) return;
+    if (!game.started || game.completed) return;
     if (!game.calledNumbers.includes(sq.number)) {
       toast({
         description: "Number " + sq.number + " not called yet!",
@@ -217,6 +227,11 @@ function Play() {
             Start Game!
           </Button>
         )}
+        {game && game.started && !game.completed && game.caller === user.email && (
+          <Button colorScheme="teal" onClick={() => completeGame()}>
+            Complete Game!
+          </Button>
+        )}
       </Box>
       <Heading as="h4" size="md" paddingBottom="10px">
         Player cards
@@ -248,7 +263,7 @@ function Play() {
           updateCalledNumbers={updateCalledNumbers}
           calledNumbers={game && game.calledNumbers ? game.calledNumbers : []}
           isCaller={user && game && game.caller === user.email}
-          started={game && game.started}
+          started={game && game.started && !game.completed}
         ></Caller>
       </Box>
     </Box>
