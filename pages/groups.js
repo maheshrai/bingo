@@ -157,24 +157,22 @@ function Groups() {
               <PopoverHeader>Create a new group</PopoverHeader>
               <PopoverBody>
                 <FormControl id="email">
-                  <FormLabel>Group Name</FormLabel>
+                  <FormLabel>Name of your new bingo group</FormLabel>
                   <Input
                     type="text"
                     onChange={handleGroupNameChange}
                     value={groupName}
                   />
-                  <FormHelperText>Name of your new bingo group</FormHelperText>
                 </FormControl>
-                <FormControl id="name">
+                <FormControl id="name" paddingTop="10px">
                   <FormLabel>Your name in the group</FormLabel>
                   <Input
                     type="text"
                     onChange={handleOwnerNameChange}
                     value={ownerName}
                   />
-                  <FormHelperText>Name of the owner</FormHelperText>
                 </FormControl>
-                <HStack>
+                <HStack paddingTop="10px">
                   <Spacer></Spacer>
                   <Button
                     colorScheme="green"

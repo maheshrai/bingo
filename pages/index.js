@@ -35,7 +35,7 @@ export default function Home() {
       <Box p={5} shadow="md" borderWidth="1px" flex="1" borderRadius="md">
         <Heading fontSize="xl">How to Play</Heading>
         <UnorderedList>
-          <ListItem>Create a group and invite players to the group.</ListItem>
+          <ListItem>Create a group and add players to the group.</ListItem>
           <ListItem>Identify one player as the caller.</ListItem>
           <ListItem>
             Each player will pick a Bingo card. Once the game starts, you cannot
