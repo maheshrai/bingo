@@ -45,7 +45,7 @@ function MyApp({ Component, pageProps }) {
         <Header></Header>
         <Component {...pageProps} />
         <footer className={styles.footer}>
-          Copyright &copy; 2021 Ishaan Inc.
+          Copyright &copy; {new Date().getFullYear()} Ishaan
         </footer>
       </ChakraProvider>
     </UserContext.Provider>

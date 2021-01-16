@@ -20,6 +20,7 @@ import { Caller } from "../../../components/Caller";
 import { createBingoCard } from "../../../components/CardGenerator";
 import { supabase } from "../../../lib/supabase";
 import UserContext from "../../../lib/UserContext";
+import { CheckCircleIcon } from "@chakra-ui/icons";
 
 function Play() {
   const toast = useToast();
@@ -70,6 +71,9 @@ function Play() {
         var sm = new SquareModel();
         sm.number = n;
         sm.key = gameid + "-" + updatedPlayer.id + "-" + i;
+        sm.checked = updatedPlayer.checkedNumbers
+          ? updatedPlayer.checkedNumbers.includes(n)
+          : false;
         cm.squares.push(sm);
       });
       setGame((gm) => {
@@ -89,7 +93,7 @@ function Play() {
     if (!gameid) return;
     let { data, error } = await supabase
       .from("game")
-      .select(`*,player(id,name,email,card),group(id,name)`)
+      .select(`*,player(id,name,email,card,checkedNumbers),group(id,name)`)
       .eq("id", gameid);
     console.log(JSON.stringify(data));
     var gametemp = new Game();
@@ -117,6 +121,9 @@ function Play() {
         card.forEach((n, i) => {
           var sm = new SquareModel();
           sm.number = n;
+          sm.checked = player.checkedNumbers
+            ? player.checkedNumbers.includes(n)
+            : false;
           sm.key = data[0].id + "-" + player.id + "-" + i;
           p.card.squares.push(sm);
         });
@@ -147,9 +154,18 @@ function Play() {
     }
   }
 
-  function updateSquare(player, sq, checked) {
+  async function updateSquare(player, sq, checked) {
     if (player.email !== user.email) return;
-    setGame((gm) => {
+    if (!game.calledNumbers.includes(sq.number)) {
+      toast({
+        description: "Number " + sq.number + " not called yet!",
+        status: "info",
+        duration: 2000,
+        isClosable: true,
+      });
+      return;
+    }
+    /*setGame((gm) => {
       const p = gm.players.find((p) => p.email === player.email);
       if (p) {
         var cm = new CardModel();
@@ -161,7 +177,18 @@ function Play() {
         p2.card = cm;
         return gm2;
       }
-    });
+    });*/
+    // update the database
+    let checkedNumbers = player.card.squares.map((s) =>
+      s.checked ? s.number : 0
+    );
+    checkedNumbers = checkedNumbers.filter((i) => i > 0);
+    if (checked) checkedNumbers.push(sq.number);
+    else checkedNumbers = checkedNumbers.filter((i) => i !== sq.number);
+    let { data, error } = await supabase
+      .from("player")
+      .update({ checkedNumbers: checkedNumbers })
+      .eq("id", player.id);
   }
 
   async function updateCalledNumbers(nums) {
