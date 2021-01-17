@@ -44,7 +44,8 @@ function Bingo() {
       .select(
         `id,name,owner,groupmember(id, name, email),game(id,caller,started,created,completed)`
       )
-      .eq("id", groupid);
+      .eq("id", groupid)
+      .order("created");
     if (group && group.length === 1) {
       if (group[0].groupmember.find((m) => m.email === user.email))
         setGroup(group[0]);
@@ -148,7 +149,7 @@ function Bingo() {
           </Thead>
           <Tbody>
             {group &&
-              group.game.map((gm) => (
+              group.game.reverse().map((gm) => (
                 <Link
                   href={"/bingo/" + groupid + "/" + gm.id}
                   key={"game-" + gm.id}
